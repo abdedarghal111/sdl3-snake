@@ -1,17 +1,24 @@
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
+#include <utility>
+#include <vector>
+
+#include "IAppProcess.h"
+
+#pragma once
 
 class App {
     protected:
         bool closeSignal = false;
+
+        std::vector<IAppProcess*> processes;
         
         inline static App* app = nullptr;
 
         App(){}
 
     public:
-        int kScreenWidth = 640;
-        int kScreenHeight = 480;
+        int kScreenWidth = 650;
+        int kScreenHeight = 650;
 
         SDL_Window* window = nullptr;
         SDL_Renderer* renderer = nullptr;
@@ -20,6 +27,14 @@ class App {
         // App(){
 
         // }
+
+        void addProcess(IAppProcess* process){
+            processes.push_back(process);
+        }
+
+        std::pair<int, int> getScreenSize(){
+            return {kScreenWidth, kScreenHeight};
+        }
 
         void sendCloseSignal(){
             closeSignal = true;
@@ -66,18 +81,36 @@ class App {
                 return false;
             }
 
+            for (IAppProcess* process : processes){
+                if(!process->init()){
+                    return false;
+                }
+            }
+
             return true;
         }
 
         void update(float* dt){
             // SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Update del juego");
+
+            for (IAppProcess* process : processes){
+                process->update(dt);
+            }
         }
 
         void render(){
+            SDL_RenderClear(renderer);
+            for (IAppProcess *process : processes){
+                process->render(renderer);
+            }
+            SDL_RenderPresent(renderer);
         }
 
         void close(){
             // SDL_DestroySurface(screenSurface);
+            for (IAppProcess* process : processes){
+                process->close();
+            }
             SDL_DestroyRenderer(renderer);
             SDL_DestroyWindow(window);
             window = nullptr;

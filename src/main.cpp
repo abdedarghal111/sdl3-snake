@@ -3,11 +3,14 @@
 #include <string>
 
 #include "class/App.cpp"
+#include "class/Snake.cpp"
 
 uint8_t FPS = 60;
 Uint64 F_MAX_DELAY = 1'000'000ull / FPS;
 
 int main(int argc, char* argv[]) {
+
+
     if(!app->init()) {
         SDL_Log("No se pudo inicializar el programa!\n");
         app->close();
