@@ -19,7 +19,7 @@ Set-Location $buildDir
 $buildType = if ($Release) { "Release" } else { "Debug" }
 
 # Ejecutar cmake solo si no está configurado
-cmake .. -DCMAKE_TOOLCHAIN_FILE=../mingw-toolchain.cmake -DCMAKE_BUILD_TYPE=$buildType -Wno-dev
+cmake .. -DCMAKE_TOOLCHAIN_FILE="../mingw-toolchain.cmake" -DCMAKE_BUILD_TYPE=$buildType -Wno-dev
 
 # Compilar
 cmake --build . --config $buildType
