@@ -7,12 +7,11 @@
 #include "unique/FPSRecorder.cpp"
 
 int FPS = 60;
-long long S_IN_NS = 1'000'000'000ull;
+unsigned long long S_IN_NS = 1'000'000'000ll;
 
-long long MAX_NS_DELAY = S_IN_NS / FPS;
+unsigned long long MAX_NS_DELAY = S_IN_NS / FPS;
 
 int main(int argc, char* argv[]) {
-
 
     if(!app->init()) {
         SDL_Log("No se pudo inicializar el programa!\n");
@@ -25,14 +24,14 @@ int main(int argc, char* argv[]) {
     // SDL_SetWindowResizable(gWindow, true);
     // SDL_SetWindowMaximumSize(gWindow, 0, 0);
 
-    SDL_SetWindowBordered(app->window, false);
+    // SDL_SetWindowBordered(app->window, false);
     SDL_Event e;
     SDL_zero(e);
 
     double deltaTime = 0;
-    long long nFrameStart = 0;
-    long long nFrameEnd = 0;
-    long long nsFrameTime = 0;
+    unsigned long long nFrameStart = 0;
+    unsigned long long nFrameEnd = 0;
+    unsigned long long nsFrameTime = 0;
     while (!app->getCloseSignal()) {
         nFrameStart = SDL_GetTicksNS();
         while (SDL_PollEvent(&e) == true) {
@@ -44,12 +43,24 @@ int main(int argc, char* argv[]) {
         app->update(&deltaTime);
         app->render();
 
+
+        // wait next frame
+        // while((SDL_GetTicksNS() - nFrameStart) < MAX_NS_DELAY){
+        //     SDL_DelayNS(1'000'000ll);
+        // }
         nFrameEnd = SDL_GetTicksNS();
         nsFrameTime = nFrameEnd - nFrameStart;
         if (nsFrameTime < MAX_NS_DELAY) {
             SDL_DelayNS(MAX_NS_DELAY - nsFrameTime);
         }
+
+        // accuraced stable fps
+        // if (nsFrameTime < MAX_NS_DELAY) {
+        //     SDL_DelayNS(MAX_NS_DELAY - nsFrameTime - 10'000'000ll);
+        // }
+        // while(SDL_GetTicksNS() - nFrameStart < MAX_NS_DELAY){}
         deltaTime = (double)(SDL_GetTicksNS() - nFrameStart) / S_IN_NS;
+        // SDL_Log(std::to_string(1 / deltaTime).c_str());
         fpsRecorder->record(1 / deltaTime);
     }
 

@@ -37,7 +37,7 @@ public:
     void update(double* dt) override {
 
         //check keys
-        count->setText(std::to_string( fpsRecorder->getAVG() ).substr(0, 4));
+        count->setText(std::to_string( fpsRecorder->getAVG() ).substr(0, 8));
 
         const bool* keyStates = SDL_GetKeyboardState(NULL);
         if (keyStates[SDL_SCANCODE_D]){
