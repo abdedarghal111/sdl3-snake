@@ -43,11 +43,6 @@ int main(int argc, char* argv[]) {
         app->update(&deltaTime);
         app->render();
 
-
-        // wait next frame
-        // while((SDL_GetTicksNS() - nFrameStart) < MAX_NS_DELAY){
-        //     SDL_DelayNS(1'000'000ll);
-        // }
         nFrameEnd = SDL_GetTicksNS();
         nsFrameTime = nFrameEnd - nFrameStart;
         if (nsFrameTime < MAX_NS_DELAY) {
@@ -60,7 +55,6 @@ int main(int argc, char* argv[]) {
         // }
         // while(SDL_GetTicksNS() - nFrameStart < MAX_NS_DELAY){}
         deltaTime = (double)(SDL_GetTicksNS() - nFrameStart) / S_IN_NS;
-        // SDL_Log(std::to_string(1 / deltaTime).c_str());
         fpsRecorder->record(1 / deltaTime);
     }
 
