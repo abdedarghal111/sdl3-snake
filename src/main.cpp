@@ -46,10 +46,10 @@ int main(int argc, char* argv[]) {
         nFrameEnd = SDL_GetTicksNS();
         nsFrameTime = nFrameEnd - nFrameStart;
         if (nsFrameTime < MAX_NS_DELAY) {
-            SDL_DelayNS(MAX_NS_DELAY - nsFrameTime);
+            SDL_DelayPrecise(MAX_NS_DELAY - nsFrameTime);
         }
 
-        // accuraced stable fps
+        // // accuraced stable fps
         // if (nsFrameTime < MAX_NS_DELAY) {
         //     SDL_DelayNS(MAX_NS_DELAY - nsFrameTime - 10'000'000ll);
         // }

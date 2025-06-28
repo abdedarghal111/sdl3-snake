@@ -93,6 +93,13 @@ class App {
                 return false;
             }
 
+            long long timeCounter = 0;
+            if(!SDL_GetCurrentTime(&timeCounter)){
+                SDL_Log("No se pudo obtener el tiempo actual para la randomseed: %s\n", SDL_GetError());
+                return false;
+            }
+            SDL_srand(timeCounter);
+
             for (IAppProcess* process : processes){
                 if(!process->init()){
                     return false;
