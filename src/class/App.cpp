@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <utility>
 #include <vector>
 
@@ -98,7 +99,14 @@ class App {
                 SDL_Log("No se pudo obtener el tiempo actual para la randomseed: %s\n", SDL_GetError());
                 return false;
             }
+
             SDL_srand(timeCounter);
+
+            if(!SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND)){
+                // para transparencia
+                SDL_Log("No se pudo activar el blendmode: %s\n", SDL_GetError());
+                return false;
+            }
 
             for (IAppProcess* process : processes){
                 if(!process->init()){

@@ -21,9 +21,13 @@ public:
     SDL_FRect posAndSize = {0, 0, 0, 0};
     double degrees = 0.0f;
     bool visible = true;
+    bool autoDraw = true;
+    bool hasShadow = false;
 
-    Text(std::string text) {
+    Text(std::string text, bool autoDraw = true, bool hasShadow = false) {
         this->text = text;
+        this->autoDraw = autoDraw;
+        this->hasShadow = hasShadow;
         app->addProcess(this);
     }
 
@@ -51,10 +55,24 @@ public:
     void update(double* dt) override {
     }
 
-    void render(SDL_Renderer* renderer) override {
+    void manualRender(SDL_Renderer* renderer) {
         if(!visible) return;
-        SDL_GetRenderDrawColor(renderer, &color.r, &color.g, &color.b, &color.a);
+
+        if(hasShadow){
+            // previous color
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 100);
+            SDL_RenderFillRect(renderer, &posAndSize);
+
+        }
+
+        SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
+        SDL_SetTextureAlphaMod(texture, color.a);
         SDL_RenderTextureRotated(renderer, texture, NULL, &posAndSize, degrees, NULL, SDL_FLIP_NONE);
+    }
+
+    void render(SDL_Renderer* renderer) override {
+        if(!autoDraw) return;
+        manualRender(renderer);
     }
 
     void close() override {

@@ -8,6 +8,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out)
 # Función para incluir dependencias
 include(FetchContent)
 function(include_dependency libName gitURL gitTag)
+    set(FETCHCONTENT_QUIET OFF)
+    
     FetchContent_Declare(${libName}
         GIT_REPOSITORY ${gitURL}
         GIT_TAG        ${gitTag}
@@ -33,11 +35,11 @@ file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
 add_executable(snake ${SOURCES})
 
 # Copiar carpeta res al directorio de salida (out/)
-add_custom_command(TARGET snake POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/res
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/res
-)
+# add_custom_command(TARGET snake POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy_directory
+#     ${CMAKE_SOURCE_DIR}/res
+#     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/res
+# )
 
 # DEPS
 
@@ -50,7 +52,7 @@ else()
     message(STATUS "Using local SDL3")
 endif()
 
-target_link_libraries(snake PRIVATE SDL3::SDL3-shared)
+target_link_libraries(snake PRIVATE SDL3::SDL3)
 
 # Buscar o descargar SDL3_ttf y linkear
 find_package(SDL3_ttf QUIET)
@@ -63,7 +65,16 @@ endif()
 
 target_link_libraries(snake PRIVATE SDL3_ttf::SDL3_ttf)
 
+# Buscar o descargar SDL_mixer y linkear
+find_package(SDL_mixer QUIET)
+if (NOT SDL_mixer_FOUND)
+    message(STATUS "Getting SDL_mixer from Github")
+    include_dependency(SDL_mixer https://github.com/libsdl-org/SDL_mixer.git main) # no existe release para 3.0
+else()
+    message(STATUS "Using local SDL_mixer")
+endif()
 
+target_link_libraries(snake PRIVATE SDL_mixer::SDL_mixer)
 
 # Mostrar consola en Windows
 if (WIN32 AND MINGW)

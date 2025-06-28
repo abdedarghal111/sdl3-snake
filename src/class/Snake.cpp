@@ -27,12 +27,13 @@ std::string direction = "right";
 std::string prevDirection = "right";
 bool addTile = false;
 bool alive = true;
-int randTile = SDL_rand(20) + 1;
 
-text::Text* fpsText = new text::Text("FPS:");
-text::Text* avgFPSText = new text::Text(std::to_string(fpsRecorder->getAVG()).substr(0, 6));
-text::Text* snakeLenText = new text::Text("Snake size:");
-text::Text* snakeLengthText = new text::Text(std::to_string(1));
+text::Text* fpsText = new text::Text("FPS:", false, true);
+text::Text* avgFPSText = new text::Text(std::to_string(fpsRecorder->getAVG()).substr(0, 6), false, true);
+text::Text* snakeLenText = new text::Text("Snake size:", false, true);
+text::Text* snakeLengthText = new text::Text(std::to_string(1), false, true);
+text::Text* appleText = new text::Text("Apples in map:", false, true);
+text::Text* appleCountText = new text::Text(std::to_string(appleTiles.size()), false, true);
 
 App* app = App::get();
 
@@ -42,6 +43,15 @@ void moveAllTiles() {
         snakeTiles[i].x = snakeTiles[i - 1].x;
         snakeTiles[i].y = snakeTiles[i - 1].y;
     }
+}
+
+int isTouchingElementOfList(std::vector<SDL_FRect> list, float x, float y) {
+    for (size_t i = 0; i < list.size(); i++) {
+        if (list[i].x == x && list[i].y == y) {
+            return (int)i;
+        }
+    }
+    return -1;
 }
 
 class Snake : public IAppProcess {
@@ -55,14 +65,18 @@ public:
         W_TILES = TILES * TILE_SIZE;
         TILES_PADDING = (app->getScreenSize().first - W_TILES) / 2;
         
-        fpsText->posAndSize.x = (float)TILES_PADDING + 3;
-        fpsText->posAndSize.y = (float)TILES_PADDING;
+        fpsText->posAndSize.x = (float)TILES_PADDING + 1;
+        fpsText->posAndSize.y = (float)TILES_PADDING + 1;
         avgFPSText->posAndSize.y = fpsText->posAndSize.y;
         avgFPSText->posAndSize.x = fpsText->posAndSize.x + fpsText->posAndSize.w;
         snakeLenText->posAndSize.y = avgFPSText->posAndSize.y + avgFPSText->posAndSize.h;
         snakeLenText->posAndSize.x = fpsText->posAndSize.x;
         snakeLengthText->posAndSize.y = snakeLenText->posAndSize.y;
         snakeLengthText->posAndSize.x = snakeLenText->posAndSize.x + snakeLenText->posAndSize.w;
+        appleText->posAndSize.y = snakeLenText->posAndSize.y + snakeLenText->posAndSize.h;
+        appleText->posAndSize.x = fpsText->posAndSize.x;
+        appleCountText->posAndSize.y = appleText->posAndSize.y;
+        appleCountText->posAndSize.x = appleText->posAndSize.x + appleText->posAndSize.w;
 
         int startXPoint = TILE_SIZE/2 * TILES + TILES_PADDING;
         int startYPoint = startXPoint;
@@ -126,6 +140,13 @@ public:
                 }
             }
 
+            // snake ate apple
+            int touchingApple = isTouchingElementOfList(appleTiles, snakeTiles[0].x, snakeTiles[0].y);
+            if(touchingApple != -1) {
+                addTile = true;
+                appleTiles.erase(appleTiles.begin() + touchingApple);
+            }
+
             if(addTile) {
                 snakeTiles.push_back({lastX, lastY, (float)TILE_SIZE, (float)TILE_SIZE});
                 addTile = false;
@@ -148,24 +169,55 @@ public:
         // check apple existance
         if(appleTiles.size() < MAX_APPLES_ALIVE && SDL_GetTicks() - appleTimeTracker > SPAWN_APPLES_DELAY) {
             
+            size_t touchingSnake = 0;
+            size_t touchingApple = 0;
+            int randX = 0;
+            int randY = 0;
+
+            do {
+                randX = (SDL_rand(20) * TILE_SIZE) + TILES_PADDING; // 0-19
+                randY = (SDL_rand(20) * TILE_SIZE) + TILES_PADDING; // 0-19
+
+                touchingSnake = isTouchingElementOfList(snakeTiles, (float)randX, (float)randY);
+                touchingApple = isTouchingElementOfList(appleTiles, (float)randX, (float)randY);
+            }while(touchingSnake != -1 && touchingApple != -1);
+
+            appleTiles.push_back({(float)randX, (float)randY, (float)TILE_SIZE, (float)TILE_SIZE});
+            appleTimeTracker = SDL_GetTicks();
         }
 
         // show stats
         avgFPSText->setText(std::to_string(fpsRecorder->getAVG()).substr(0, 6));
         snakeLengthText->setText(std::to_string(snakeTiles.size()));
+        appleCountText->setText(std::to_string(appleTiles.size()));
     }
 
     void render(SDL_Renderer* renderer) override {
-        SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         // draw playZone rectangle
-        SDL_FRect playZoneRect = {(float)TILES_PADDING, (float)TILES_PADDING, (float)W_TILES, (float)W_TILES};
-        SDL_RenderRect(renderer, &playZoneRect);
         
         // draw snake
         for (SDL_FRect rect : snakeTiles) {
-            // SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
             SDL_RenderFillRect(renderer, &rect);
         }
+        
+        // draw apple
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        for (SDL_FRect rect : appleTiles) {
+            SDL_RenderFillRect(renderer, &rect);
+        }
+
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_FRect playZoneRect = {(float)TILES_PADDING, (float)TILES_PADDING, (float)W_TILES, (float)W_TILES};
+        SDL_RenderRect(renderer, &playZoneRect);
+
+        // draw text
+        fpsText->manualRender(renderer);
+        avgFPSText->manualRender(renderer);
+        snakeLenText->manualRender(renderer);
+        snakeLengthText->manualRender(renderer);
+        appleText->manualRender(renderer);
+        appleCountText->manualRender(renderer);
     }
 
     void close() override {
