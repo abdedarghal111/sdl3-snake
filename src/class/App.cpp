@@ -66,6 +66,15 @@ class App {
                 return false;
             }
 
+            if(!SDL_Init(SDL_INIT_AUDIO)) {
+                SDL_Log("SDL no pudo inicializarse: %s\n", SDL_GetError());
+            }
+
+            if(!Mix_OpenAudio(0, nullptr)) {
+                SDL_Log("SDL no pudo inicializarse: %s\n", SDL_GetError());
+                return false;
+            }
+
             if (!TTF_Init()) {
                 SDL_Log("TTF no pudo inicializarse: %s\n", SDL_GetError());
                 return false;

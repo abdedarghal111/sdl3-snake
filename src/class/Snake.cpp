@@ -1,10 +1,12 @@
 #include <SDL3/SDL.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <string>
 #include <vector>
 
 #include "IAppProcess.h"
 #include "App.cpp"
 #include "class/Text.cpp"
+#include "class/Sound.cpp"
 #include "unique/FPSRecorder.cpp"
 
 #pragma once
@@ -35,6 +37,10 @@ text::Text* snakeLengthText = new text::Text(std::to_string(1), false, true);
 text::Text* appleText = new text::Text("Apples in map:", false, true);
 text::Text* appleCountText = new text::Text(std::to_string(appleTiles.size()), false, true);
 
+sound::Sound* eatSound = new sound::Sound("res/sounds/eat.mp3");
+sound::Sound* dieSound = new sound::Sound("res/sounds/gameOver.mp3");
+
+
 App* app = App::get();
 
 void moveAllTiles() {
@@ -61,6 +67,7 @@ public:
     }
 
     bool init() override {
+
         TILE_SIZE = app->getScreenSize().first / TILES;
         W_TILES = TILES * TILE_SIZE;
         TILES_PADDING = (app->getScreenSize().first - W_TILES) / 2;
@@ -81,6 +88,8 @@ public:
         int startXPoint = TILE_SIZE/2 * TILES + TILES_PADDING;
         int startYPoint = startXPoint;
         snakeTiles.push_back({(float)startYPoint, (float)startXPoint, (float)TILE_SIZE, (float)TILE_SIZE});
+
+        eatSound->duration = 0.4;
         
         return true;
     }
@@ -104,7 +113,7 @@ public:
         }
 
         // TODO: borrar
-        if(snakeTiles.size() < 6){
+        if(snakeTiles.size() < 3){
             addTile = true;
         }
         // move snake and add tile if needed
@@ -145,6 +154,7 @@ public:
             if(touchingApple != -1) {
                 addTile = true;
                 appleTiles.erase(appleTiles.begin() + touchingApple);
+                eatSound->play();
             }
 
             if(addTile) {
@@ -154,15 +164,10 @@ public:
         }
 
         // check collision
-        for (SDL_FRect rect : snakeTiles) {
-            if (rect.x == app->getScreenSize().first - TILE_SIZE) {
+        for (size_t i = 1; i < snakeTiles.size(); i++) {
+            if (snakeTiles[i].x == snakeTiles[0].x && snakeTiles[i].y == snakeTiles[0].y) {
                 alive = false;
-            }else if (rect.x == 0) {
-                alive = false;
-            }else if (rect.y == app->getScreenSize().second - TILE_SIZE) {
-                alive = false;
-            }else if (rect.y == 0) {
-                alive = false;
+                dieSound->play();
             }
         }
 
@@ -180,7 +185,7 @@ public:
 
                 touchingSnake = isTouchingElementOfList(snakeTiles, (float)randX, (float)randY);
                 touchingApple = isTouchingElementOfList(appleTiles, (float)randX, (float)randY);
-            }while(touchingSnake != -1 && touchingApple != -1);
+            }while(touchingSnake != -1 || touchingApple != -1);
 
             appleTiles.push_back({(float)randX, (float)randY, (float)TILE_SIZE, (float)TILE_SIZE});
             appleTimeTracker = SDL_GetTicks();

@@ -65,16 +65,16 @@ endif()
 
 target_link_libraries(snake PRIVATE SDL3_ttf::SDL3_ttf)
 
-# Buscar o descargar SDL_mixer y linkear
-find_package(SDL_mixer QUIET)
-if (NOT SDL_mixer_FOUND)
-    message(STATUS "Getting SDL_mixer from Github")
-    include_dependency(SDL_mixer https://github.com/libsdl-org/SDL_mixer.git main) # no existe release para 3.0
+# Buscar o descargar SDL3_mixer y linkear
+find_package(SDL3_mixer QUIET)
+if (NOT SDL3_mixer_FOUND)
+    message(STATUS "Getting SDL3_mixer from Github")
+    include_dependency(SDL3_mixer https://github.com/libsdl-org/SDL_mixer.git main) # no existe release para 3.0
 else()
-    message(STATUS "Using local SDL_mixer")
+    message(STATUS "Using local SDL3_mixer")
 endif()
 
-target_link_libraries(snake PRIVATE SDL_mixer::SDL_mixer)
+target_link_libraries(snake PRIVATE SDL3_mixer::SDL3_mixer)
 
 # Mostrar consola en Windows
 if (WIN32 AND MINGW)
