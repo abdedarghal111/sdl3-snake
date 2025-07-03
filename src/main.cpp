@@ -2,9 +2,9 @@
 #include <SDL3/SDL_main.h>
 #include <string>
 
-#include "class/App.cpp"
-#include "class/Snake.cpp"
-#include "unique/FPSRecorder.cpp"
+#include "class/App.h"
+#include "class/Snake.h"
+#include "unique/FPSRecorder.h"
 
 int FPS = 60;
 unsigned long long S_IN_NS = 1'000'000'000ll;
@@ -32,6 +32,7 @@ int main(int argc, char* argv[]) {
     unsigned long long nFrameStart = 0;
     unsigned long long nFrameEnd = 0;
     unsigned long long nsFrameTime = 0;
+    
     while (!app->getCloseSignal()) {
         nFrameStart = SDL_GetTicksNS();
         while (SDL_PollEvent(&e) == true) {

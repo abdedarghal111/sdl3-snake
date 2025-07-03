@@ -1,15 +1,14 @@
+#pragma once
+
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <string>
 
 #include "IAppProcess.h"
-#include "App.cpp"
+#include "App.h"
 
-#pragma once
 
 namespace sound {
-
-App* app = App::get();
 
 class Sound : public IAppProcess {
 public:

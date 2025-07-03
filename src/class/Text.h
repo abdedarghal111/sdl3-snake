@@ -1,15 +1,14 @@
+#pragma once
+
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 
 #include "IAppProcess.h"
-#include "App.cpp"
+#include "App.h"
 
-#pragma once
 
 namespace text {
-
-App* app = App::get();
 
 class Text : public IAppProcess {
 public:

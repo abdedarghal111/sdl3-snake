@@ -1,15 +1,16 @@
+#pragma once
+
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <string>
 #include <vector>
 
 #include "IAppProcess.h"
-#include "App.cpp"
-#include "class/Text.cpp"
-#include "class/Sound.cpp"
-#include "unique/FPSRecorder.cpp"
+#include "App.h"
+#include "Text.h"
+#include "Sound.h"
+#include "../unique/FPSRecorder.h"
 
-#pragma once
 
 namespace snake {
 
@@ -22,6 +23,7 @@ int W_TILES = 0;
 int TILES_PADDING = 0;
 unsigned long long movementTimeTracker = SDL_GetTicks();
 unsigned long long appleTimeTracker = SDL_GetTicks();
+unsigned long long blinkingTimer = SDL_GetTicks();
 std::vector<SDL_FRect> snakeTiles;
 std::vector<SDL_FRect> appleTiles;
 
@@ -36,12 +38,10 @@ text::Text* snakeLenText = new text::Text("Snake size:", false, true);
 text::Text* snakeLengthText = new text::Text(std::to_string(1), false, true);
 text::Text* appleText = new text::Text("Apples in map:", false, true);
 text::Text* appleCountText = new text::Text(std::to_string(appleTiles.size()), false, true);
+text::Text* restartText = new text::Text("Press 'space' to restart", false, true);
 
 sound::Sound* eatSound = new sound::Sound("res/sounds/eat.mp3");
 sound::Sound* dieSound = new sound::Sound("res/sounds/gameOver.mp3");
-
-
-App* app = App::get();
 
 void moveAllTiles() {
     // mueve el último al penultimo y para antes de alcanzar el primero de todos
@@ -85,6 +85,12 @@ public:
         appleCountText->posAndSize.y = appleText->posAndSize.y;
         appleCountText->posAndSize.x = appleText->posAndSize.x + appleText->posAndSize.w;
 
+        restartText->posAndSize.h *= 1.3f;
+        restartText->posAndSize.w *= 1.3f;
+        restartText->posAndSize.y = app->getScreenSize().first/2 - restartText->posAndSize.h/2;
+        restartText->posAndSize.x = app->getScreenSize().first/2 - restartText->posAndSize.w/2;
+        restartText->visible = false;
+
         int startXPoint = TILE_SIZE/2 * TILES + TILES_PADDING;
         int startYPoint = startXPoint;
         snakeTiles.push_back({(float)startYPoint, (float)startXPoint, (float)TILE_SIZE, (float)TILE_SIZE});
@@ -109,13 +115,32 @@ public:
 
         // if game over
         if(!alive){
+            if( SDL_GetTicks() - blinkingTimer > 700){
+                restartText->visible = !restartText->visible;
+                blinkingTimer = SDL_GetTicks();
+            }
+            if(keyStates[SDL_SCANCODE_SPACE]){
+                // reset
+                restartText->visible = false;
+                alive = true;
+                snakeTiles.clear();
+                appleTiles.clear();
+                movementTimeTracker = SDL_GetTicks();
+                appleTimeTracker = SDL_GetTicks();
+                direction = "right";
+                prevDirection = "right";
+                int startXPoint = TILE_SIZE/2 * TILES + TILES_PADDING;
+                int startYPoint = startXPoint;
+                snakeTiles.push_back({(float)startYPoint, (float)startXPoint, (float)TILE_SIZE, (float)TILE_SIZE});
+            }
             return;
         }
 
-        // TODO: borrar
+        // tamaño inicial
         if(snakeTiles.size() < 3){
             addTile = true;
         }
+
         // move snake and add tile if needed
         if(SDL_GetTicks() - movementTimeTracker > 1 / JUMPS_PER_SEC * 1000) {
             float lastX = snakeTiles[snakeTiles.size() - 1].x;
@@ -167,6 +192,8 @@ public:
         for (size_t i = 1; i < snakeTiles.size(); i++) {
             if (snakeTiles[i].x == snakeTiles[0].x && snakeTiles[i].y == snakeTiles[0].y) {
                 alive = false;
+                restartText->visible = true;
+                blinkingTimer = SDL_GetTicks();
                 dieSound->play();
             }
         }
@@ -223,6 +250,8 @@ public:
         snakeLengthText->manualRender(renderer);
         appleText->manualRender(renderer);
         appleCountText->manualRender(renderer);
+
+        restartText->manualRender(renderer);
     }
 
     void close() override {
