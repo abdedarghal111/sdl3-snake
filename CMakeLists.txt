@@ -1,78 +1,68 @@
 cmake_minimum_required(VERSION 3.10)
 project("Snake")
 
+include(/vcpkg/scripts/buildsystems/vcpkg.cmake)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/out)
+
+
 set(EXECUTABLE_NAME ${PROJECT_NAME})
-
-# set(CMAKE_SYSTEM_NAME Windows)
-
 set(RESOURCES_ROOT "${CMAKE_SOURCE_DIR}/res")
 set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/out/$<CONFIG>")
 
+if(EMSCRIPTEN)
+    set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")    # Disable shared builds on platforms where it does not make sense to use them
+    set(SDL_SHARED OFF)
+	set(CMAKE_EXECUTABLE_SUFFIX ".html" CACHE INTERNAL "")
+
+    # Aquí añadimos la línea para pre-cargar los archivos
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_SDL=3 -s USE_SDL_IMAGE=3 -s USE_SDL_TTF=3 -s USE_FREETYPE=1 -s USE_SDL_MIXER=3 -s USE_OGG=1 --preload-file ${CMAKE_SOURCE_DIR}/res@/res")
+
+    # file(GLOB_RECURSE ASSET_FILES "${CMAKE_SOURCE_DIR}/res/*")  # Cambia "src/*" si tienes otros directorios
+
+    # foreach(FILE ${ASSET_FILES})
+    #     list(APPEND PRELOAD_FILES "--preload-file \"${FILE}@/\"")
+    # endforeach()
+
+else()
+    # Copiar carpeta res al directorio de salida (out/)
+    add_custom_target(copyRes
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different 
+            "${RESOURCES_ROOT}"
+            "${OUTPUT_DIR}/res"
+        COMMENT "Copying assets"
+    )
+    # add_dependencies(${EXECUTABLE_NAME} copyRes)
+endif()
+
 # MAIN APP
 file(GLOB_RECURSE SOURCES "src/main.cpp")
-add_executable(${EXECUTABLE_NAME} WIN32 ${SOURCES})
+add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
-# DEPS
-# if (LINUX)
-#     SET(SDL_IMAGE_SHARED_PATH "${CMAKE_SOURCE_DIR}/SDL/SDL_image/libSDL3_image.so.0")
-#     SET(SDL_TTF_SHARED_PATH "${CMAKE_SOURCE_DIR}/SDL/SDL_ttf/libSDL3_ttf.so.0")
-#     SET(SDL_SHARED_PATH "${CMAKE_SOURCE_DIR}/SDL/SDL/libSDL3.so.0")
-# else()
-#     SET(SDL_IMAGE_SHARED_PATH "${CMAKE_SOURCE_DIR}/SDL/SDL_image/Release/SDL3_image.dll")
-#     SET(SDL_TTF_SHARED_PATH "${CMAKE_SOURCE_DIR}/SDL/SDL_ttf/Release/SDL3_ttf.dll")
-#     SET(SDL_SHARED_PATH "${CMAKE_SOURCE_DIR}/SDL/SDL/Release/SDL3.dll")
-# endif()
+find_package(SDL3 CONFIG REQUIRED)
+# include_directories(${SDL3_INCLUDE_DIRS})
 
+set(SDLIMAGE_VENDORED ON)
+find_package(SDL3_image CONFIG REQUIRED)
 
-# SDL config
-add_subdirectory(lib/SDL EXCLUDE_FROM_ALL)
+set(SDLTTF_VENDORED ON)
+find_package(SDL3_ttf CONFIG REQUIRED)
 
-# SDL_ttf config
-set(SDLTTF_VENDORED ON) # tell SDL_ttf to build its own dependencies
-add_subdirectory(lib/SDL_ttf EXCLUDE_FROM_ALL)
-
-# SDL_mixer config
-set(SDLMIXER_VENDORED ON)   # tell SDL_mixer to build its own dependencies
-add_subdirectory(lib/SDL_mixer EXCLUDE_FROM_ALL)
-
-# # SDL_image config
-# set(SDLIMAGE_VENDORED ON)  # tell SDL_image to build its own dependencies
-# add_subdirectory(lib/SDL_image EXCLUDE_FROM_ALL)
+# set(SDLMIXER_VENDORED ON)   # tell SDL_mixer to build its own dependencies
+# set(SDLMIXER_MIDI_NATIVE OFF)
+# set(SDLMIXER_GME OFF)
+# set(SDLMIXER_WAVPACK OFF)     
+# set(SDLMIXER_MOD OFF)
+set(SDLMIXER_OPUS OFF)
+# set(SDLMIXER_OGG OFF)
+add_subdirectory(SDL_mixer EXCLUDE_FROM_ALL)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
     SDL3_ttf::SDL3_ttf
     SDL3_mixer::SDL3_mixer
-    SDL3_image::SDL3_image
+    $<IF:$<TARGET_EXISTS:SDL3_image::SDL3_image-shared>,SDL3_image::SDL3_image-shared,SDL3_image::SDL3_image-static>
     SDL3::SDL3
 )
 
-# SDL_Image bug: https://github.com/libsdl-org/SDL_image/issues/506
-if (APPLE AND NOT BUILD_SHARED_LIBS)
-    find_library(IO_LIB ImageIO REQUIRED)
-    find_library(CS_LIB CoreServices REQUIRED)
-    find_library(CT_LIB CoreText REQUIRED)
-    find_library(CG_LIB CoreGraphics REQUIRED)
-    find_library(CF_LIB CoreFoundation REQUIRED)
-    target_link_libraries(${EXECUTABLE_NAME} PUBLIC ${CF_LIB} ${CT_LIB} ${IO_LIB} ${CS_LIB} ${CG_LIB})
-endif()
 # target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
-
-# Mostrar consola en Windows
-# if (WIN32 AND MINGW)
-#     target_link_options(${EXECUTABLE_NAME} "-mconsole")
-# endif()
-
-
-# Copiar carpeta res al directorio de salida (out/)
-add_custom_target(copyRes
-	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different 
-        "${RESOURCES_ROOT}"
-        "${OUTPUT_DIR}/res"
-    COMMENT "Copying assets"
-)
-add_dependencies(${EXECUTABLE_NAME} copyRes)
-# add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy ${RESOURCES_ROOT} ${OUTPUT_DIR}
-# )

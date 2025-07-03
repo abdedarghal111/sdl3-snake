@@ -22,11 +22,11 @@ $buildType = if ($Release) { "Release" } else { "Debug" }
 
 # Ejecutar cmake solo si NoRefresh no está presente
 if (-not $NoRefresh) {
-    cmake .. -DCMAKE_TOOLCHAIN_FILE="../mingw-toolchain.cmake" -DCMAKE_BUILD_TYPE=$buildType -Wno-dev
+    cmake .. "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE="$buildType" -Wno-dev
 }
 
 # Compilar
-cmake --build . --config $buildType
+cmake --build . --config "$buildType"
 
 # Volver al directorio original
 Pop-Location
