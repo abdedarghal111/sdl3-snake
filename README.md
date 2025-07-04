@@ -2,6 +2,8 @@
 
 Un simple videojuego de la serpiente para aprender a usar SDL3 y C++.
 
+Aviso: el proyecto está repleto de malas prácticas de C++.
+
 Al final he aprendido mas a compilar (incompatibilidades y dolores de cabeza) que el propio usar SDL pero por la parte de escribir código ha estado entretenido.
 
 # Creditos
