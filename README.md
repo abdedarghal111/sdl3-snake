@@ -12,7 +12,7 @@ Al final he aprendido mas a compilar (incompatibilidades y dolores de cabeza) qu
 - `res/sounds/gameOver.mp3`: https://pixabay.com/sound-effects/game-over-arcade-6435/
 - Roboto Mono font
 - Simple DirectMedia Layer (SDL)
-- Emscriptem (Versión web)
+- Emscriptem (Para la versión web)
 
 # dependencias
 
