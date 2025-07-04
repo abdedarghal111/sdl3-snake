@@ -14,6 +14,7 @@ class App {
     protected:
         bool closeSignal = false;
         bool loaded = false;
+        bool isFocus = true;
         std::string tittle = "Snake";
 
         std::vector<IAppProcess*> processes;
@@ -46,6 +47,11 @@ class App {
             return {kScreenWidth, kScreenHeight};
         }
 
+        bool isFocused(){
+            Uint32 flags = SDL_GetWindowFlags(window);
+            return (flags & SDL_WINDOW_INPUT_FOCUS) != 0;
+        }
+
         void sendCloseSignal(){
             closeSignal = true;
         }
@@ -63,6 +69,9 @@ class App {
         }
 
         bool init(){
+            #ifdef __EMSCRIPTEN__
+            SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#document");
+            #endif
             if (!SDL_Init(SDL_INIT_VIDEO)) {
                 SDL_Log("SDL no pudo inicializarse: %s\n", SDL_GetError());
                 return false;

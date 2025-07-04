@@ -24,16 +24,6 @@ if(EMSCRIPTEN)
     # foreach(FILE ${ASSET_FILES})
     #     list(APPEND PRELOAD_FILES "--preload-file \"${FILE}@/\"")
     # endforeach()
-
-else()
-    # Copiar carpeta res al directorio de salida (out/)
-    add_custom_target(copyRes
-        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different 
-            "${RESOURCES_ROOT}"
-            "${OUTPUT_DIR}/res"
-        COMMENT "Copying assets"
-    )
-    # add_dependencies(${EXECUTABLE_NAME} copyRes)
 endif()
 
 # MAIN APP
@@ -50,12 +40,12 @@ set(SDLTTF_VENDORED ON)
 find_package(SDL3_ttf CONFIG REQUIRED)
 
 # set(SDLMIXER_VENDORED ON)   # tell SDL_mixer to build its own dependencies
-# set(SDLMIXER_MIDI_NATIVE OFF)
-# set(SDLMIXER_GME OFF)
-# set(SDLMIXER_WAVPACK OFF)     
-# set(SDLMIXER_MOD OFF)
+set(SDLMIXER_MIDI_NATIVE OFF)
+set(SDLMIXER_GME OFF)
+set(SDLMIXER_WAVPACK OFF)     
+set(SDLMIXER_MOD OFF)
 set(SDLMIXER_OPUS OFF)
-# set(SDLMIXER_OGG OFF)
+set(SDLMIXER_OGG OFF)
 add_subdirectory(SDL_mixer EXCLUDE_FROM_ALL)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE
@@ -66,3 +56,15 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE
 )
 
 # target_compile_definitions(${EXECUTABLE_NAME} PUBLIC SDL_MAIN_USE_CALLBACKS)
+
+if(!EMSCRIPTEN)
+    # Copiar carpeta res al directorio de salida (out/)
+    add_custom_target(copyRes
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different 
+            "${RESOURCES_ROOT}"
+            "${OUTPUT_DIR}/res"
+        COMMENT "Copying assets"
+    )
+
+    add_dependencies(${EXECUTABLE_NAME} copyRes)
+endif()

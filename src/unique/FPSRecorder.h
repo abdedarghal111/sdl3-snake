@@ -15,7 +15,7 @@ namespace hidden {
             for (int i = 0; i < 60; i++) {
                 sum += fpAVG[i];
             }
-            return sum / 60;
+            return (sum == 0) ? 0 : sum / 60;
         }
     };
 }

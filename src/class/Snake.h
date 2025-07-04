@@ -39,6 +39,7 @@ text::Text* snakeLengthText = new text::Text(std::to_string(1), false, true);
 text::Text* appleText = new text::Text("Apples in map:", false, true);
 text::Text* appleCountText = new text::Text(std::to_string(appleTiles.size()), false, true);
 text::Text* restartText = new text::Text("Press 'space' to restart", false, true);
+text::Text* windowNotFocusedText = new text::Text("Click on this windows to play", false, true);
 
 sound::Sound* eatSound = new sound::Sound("res/sounds/eat.mp3");
 sound::Sound* dieSound = new sound::Sound("res/sounds/gameOver.mp3");
@@ -91,6 +92,12 @@ public:
         restartText->posAndSize.x = app->getScreenSize().first/2 - restartText->posAndSize.w/2;
         restartText->visible = false;
 
+        windowNotFocusedText->posAndSize.h *= 1.3f;
+        windowNotFocusedText->posAndSize.w *= 1.3f;
+        windowNotFocusedText->posAndSize.y = app->getScreenSize().first/2 - windowNotFocusedText->posAndSize.h/2;
+        windowNotFocusedText->posAndSize.x = app->getScreenSize().first/2 - windowNotFocusedText->posAndSize.w/2;
+        windowNotFocusedText->visible = false;
+
         int startXPoint = TILE_SIZE/2 * TILES + TILES_PADDING;
         int startYPoint = startXPoint;
         snakeTiles.push_back({(float)startYPoint, (float)startXPoint, (float)TILE_SIZE, (float)TILE_SIZE});
@@ -103,15 +110,21 @@ public:
     void update(double* dt) override {
         //check input
         const bool* keyStates = SDL_GetKeyboardState(NULL);
-        if (keyStates[SDL_SCANCODE_D] && prevDirection != "left") {
+        if ((keyStates[SDL_SCANCODE_D] || keyStates[SDL_SCANCODE_RIGHT]) && prevDirection != "left") {
             direction = "right";
-        }else if(keyStates[SDL_SCANCODE_W] && prevDirection != "down"){
+        }else if((keyStates[SDL_SCANCODE_W] || keyStates[SDL_SCANCODE_UP]) && prevDirection != "down"){
             direction = "up";
-        }else if(keyStates[SDL_SCANCODE_A] && prevDirection != "right"){
+        }else if((keyStates[SDL_SCANCODE_A] || keyStates[SDL_SCANCODE_LEFT]) && prevDirection != "right"){
             direction = "left";
-        }else if(keyStates[SDL_SCANCODE_S] && prevDirection != "up"){
+        }else if((keyStates[SDL_SCANCODE_S] || keyStates[SDL_SCANCODE_DOWN]) && prevDirection != "up"){
             direction = "down";
         }
+
+        // show stats
+        avgFPSText->setText(std::to_string(fpsRecorder->getAVG()).substr(0, 6));
+        snakeLengthText->setText(std::to_string(snakeTiles.size()));
+        appleCountText->setText(std::to_string(appleTiles.size()));
+        windowNotFocusedText->visible = !app->isFocused();
 
         // if game over
         if(!alive){
@@ -217,11 +230,6 @@ public:
             appleTiles.push_back({(float)randX, (float)randY, (float)TILE_SIZE, (float)TILE_SIZE});
             appleTimeTracker = SDL_GetTicks();
         }
-
-        // show stats
-        avgFPSText->setText(std::to_string(fpsRecorder->getAVG()).substr(0, 6));
-        snakeLengthText->setText(std::to_string(snakeTiles.size()));
-        appleCountText->setText(std::to_string(appleTiles.size()));
     }
 
     void render(SDL_Renderer* renderer) override {
@@ -252,6 +260,7 @@ public:
         appleCountText->manualRender(renderer);
 
         restartText->manualRender(renderer);
+        windowNotFocusedText->manualRender(renderer);
     }
 
     void close() override {
