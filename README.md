@@ -31,8 +31,11 @@ cmake --build .
 ```
 
 ### Versión web
+```
 git submodule update --init --recursive
 mkdir build
 cd build
 emcmake cmake ..
 emmake make
+# en mi caso "emmake make" no me ha funcionado por alguna razón, he usado "make" directamente.
+```
