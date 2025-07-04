@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Emscripten-Generated Code</title>
+    <style>
+      body { font-family: arial; margin: 0; padding: none; }
+      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+      canvas.emscripten { border: 0px none; background-color: black; }
+      #status { margin-top: 30px; font-weight: bold; color: rgb(120, 120, 120); }
+      #progress { height: 20px; width: 300px; }
+    </style>
+  </head>
+  <body>
+
+    <div class="emscripten" id="status">Downloading...</div>
+    <div class="emscripten">
+      <progress value="0" max="100" id="progress"></progress>
+    </div>
+
+    <div class="emscripten_border">
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    </div>
+
+    <script type='text/javascript'>
+      var statusElement = document.getElementById('status');
+      var progressElement = document.getElementById('progress');
+      var canvasElement = document.getElementById('canvas');
+
+      var Module = {
+        canvas: canvasElement,
+        setStatus(text) {
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          if (m) {
+            text = m[1];
+            progressElement.value = parseInt(m[2]) * 100;
+            progressElement.max = parseInt(m[4]) * 100;
+            progressElement.hidden = false;
+          } else {
+            progressElement.hidden = true;
+          }
+          statusElement.innerHTML = text;
+          if (text === "All downloads complete.") {
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('progress').style.display = 'none';
+          }
+        },
+        totalDependencies: 0,
+        monitorRunDependencies(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        }
+      };
+      Module.setStatus('Downloading...');
+    </script>
+    <script async type="text/javascript" src="Snake.js"></script>
+  </body>
+</html>
